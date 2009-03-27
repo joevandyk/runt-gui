@@ -1,5 +1,7 @@
 class Schedule < ActiveRecord::Base
 
+  serialize :runt
+
   # Ran out of time - was having problems with serialization of runt objects... just made these into columns... will revist later
   # #serialize :schedule
   # 
