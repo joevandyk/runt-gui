@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090317215635) do
+ActiveRecord::Schema.define(:version => 20090327030913) do
 
   create_table "schedule_details", :force => true do |t|
     t.integer  "schedule_id"
@@ -49,6 +49,7 @@ ActiveRecord::Schema.define(:version => 20090317215635) do
     t.datetime "yearly_ends"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.binary   "runt"
   end
 
 end
