@@ -9,25 +9,25 @@ class EventOccurance < ActiveRecord::Base
         end
 
         # Apply start date
-        s = s & Runt::AfterTE.new(Runt::PDate.day(event.start_at.year, event.start_at.month, event.start_at.day), true)
+        s = s & after(event.start_at)
 
         # If end date, apply it
         if event.end_at
-          s = s & Runt::BeforeTE.new(Runt::PDate.day(event.end_at.year, event.end_at.month, event.end_at.day), true)
+          s = s & before(event.end_at)
         end
 
-        # Get the range of days in the current month
         next_month = month >> 1
-        range = Runt::DateRange.new(Runt::PDate.day(month.year, month.month, month.day), 
-                                    Runt::PDate.day(next_month.year, next_month.month, next_month.day))
+        days_in_month = range(month, next_month)
 
-        return s.dates(range).map do |day|
+        return s.dates(days_in_month).map do |day|
           EventOccurance.find_or_create_event_by_day(event, day)
         end
       end
     end
   end
 
+  private
+  
   # Given an event and a day, find the event occurence for that day
   def self.find_or_create_event_by_day event, day
     if e = event.occurences.find(:first, :conditions => ["start_at >= ? and start_at < ?", day, day + 1])
@@ -37,9 +37,26 @@ class EventOccurance < ActiveRecord::Base
     end
   end
 
-  private
 
+  # Runt Helpers
   def self.sugar 
     ExpressionBuilder.new
   end
+
+  def self.pday date
+    Runt::PDate.day date.year, date.month, date.day 
+  end
+
+  def self.after date
+    Runt::AfterTE.new(pday(date), true)
+  end
+
+  def self.before date
+    Runt::BeforeTE.new(pday(date), true)
+  end
+
+  def self.range start_at, end_at
+    Runt::DateRange.new(pday(start_at), pday(end_at))
+  end
+
 end
