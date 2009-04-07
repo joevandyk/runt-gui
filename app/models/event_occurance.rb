@@ -33,7 +33,7 @@ class EventOccurance < ActiveRecord::Base
     if e = event.occurences.find(:first, :conditions => ["start_at >= ? and start_at < ?", day, day + 1])
       return e
     else
-      EventOccurance.create! :event => event, :start_at => day.to_time + event.start_at.hour.hours + event.start_at.min.minutes
+      return event.create_occurance_on(day)
     end
   end
 

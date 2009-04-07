@@ -24,7 +24,8 @@ CREATE TABLE event_occurances (
     name character varying(255),
     start_at timestamp without time zone,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    end_at timestamp without time zone
 );
 
 
@@ -35,6 +36,8 @@ CREATE TABLE event_occurances (
 CREATE TABLE events (
     id integer NOT NULL,
     start_at timestamp without time zone,
+    end_at timestamp without time zone,
+    last_generated_event timestamp without time zone,
     repeat_weekly boolean,
     repeat_daily boolean,
     repeat_monthly boolean,
@@ -168,7 +171,6 @@ ALTER SEQUENCE schedule_details_id_seq OWNED BY schedule_details.id;
 --
 
 CREATE SEQUENCE schedules_id_seq
-    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -262,3 +264,5 @@ INSERT INTO schema_migrations (version) VALUES ('20090327030913');
 INSERT INTO schema_migrations (version) VALUES ('20090329212437');
 
 INSERT INTO schema_migrations (version) VALUES ('20090329212540');
+
+INSERT INTO schema_migrations (version) VALUES ('20090407225853');
