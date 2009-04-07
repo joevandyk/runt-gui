@@ -2,7 +2,8 @@ module Spec
   module Matchers
 
     class MatchArray #:nodoc:
-
+      include Spec::Matchers::Pretty
+      
       def initialize(expected)
         @expected = expected
       end
@@ -14,15 +15,15 @@ module Spec
         @extra_items.empty? & @missing_items.empty?
       end
 
-      def failure_message
-        message =  "expected collection contained:  #{@expected.sort.inspect}\n"
-        message += "actual collection contained:    #{@actual.sort.inspect}\n"
-        message += "the missing elements were:      #{@missing_items.sort.inspect}\n" unless @missing_items.empty?
-        message += "the extra elements were:        #{@extra_items.sort.inspect}\n" unless @extra_items.empty?
+      def failure_message_for_should
+        message =  "expected collection contained:  #{safe_sort(@expected).inspect}\n"
+        message += "actual collection contained:    #{safe_sort(@actual).inspect}\n"
+        message += "the missing elements were:      #{safe_sort(@missing_items).inspect}\n" unless @missing_items.empty?
+        message += "the extra elements were:        #{safe_sort(@extra_items).inspect}\n"   unless @extra_items.empty?
         message
       end
       
-      def negative_failure_message
+      def failure_message_for_should_not
         "Matcher does not support should_not"
       end
       
@@ -31,6 +32,10 @@ module Spec
       end
 
       private
+
+        def safe_sort(array)
+          array.all?{|item| item.respond_to?(:<=>)} ? array.sort : array
+        end
 
         def difference_between_arrays(array_1, array_2)
           difference = array_1.dup
@@ -42,19 +47,6 @@ module Spec
           difference
         end
 
-        def _pretty_print(array)
-          result = ""
-          array.each_with_index do |item, index|
-            if index < (array.length - 2)
-              result << "#{item.inspect}, "
-            elsif index < (array.length - 1)
-              result << "#{item.inspect} and "
-            else
-              result << "#{item.inspect}"
-            end
-          end
-          result
-        end
 
     end
 

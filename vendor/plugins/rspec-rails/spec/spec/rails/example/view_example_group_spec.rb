@@ -254,14 +254,14 @@ describe "render :inline => ...", :type => :view do
   end
 end
 
-describe "render 'view_spec/foo/show.rhtml'", :type => :view do
+describe "render 'view_spec/foo/show'", :type => :view do
   it "should derive action name using the first part of the template name" do
-    render 'view_spec/foo/show.rhtml'
+    render 'view_spec/foo/show'
     request.path_parameters[:action].should == 'show'
   end
 end
 
-describe "view_spec/foo/show.rhtml", :type => :view do
+describe "view_spec/foo/show", :type => :view do
   context "rendered with no args" do
     it "renders just fine" do
       render
@@ -312,7 +312,7 @@ module Spec
 
         it "should clear ActionView::Base.base_view_path on teardown" do
           group = describe("base_view_path_cleared flag", :type => :view) {}
-          example = group.new("example",{}) {}
+          example = group.new(Spec::Example::ExampleProxy.new) {}
           
           ActionView::Base.should_receive(:base_view_path=).with(nil)
           example.run_after_each

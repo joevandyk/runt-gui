@@ -9,7 +9,7 @@ require 'spec'
 require 'spec/mocks'
 spec_classes_path = File.expand_path("#{dir}/../spec/spec/spec_classes")
 require spec_classes_path unless $LOAD_PATH.include?(spec_classes_path)
-require File.dirname(__FILE__) + '/../lib/spec/expectations/differs/default'
+require File.dirname(__FILE__) + '/../lib/spec/runner/differs/default'
 
 def jruby?
   ::RUBY_PLATFORM == 'java'
@@ -100,6 +100,9 @@ module Spec
       ::Spec::Runner.options.remove_example_group self
       def register_example_group(klass)
         #ignore
+      end
+      def initialize(proxy=nil, &block)
+        super(proxy || ExampleProxy.new, &block)
       end
     end
   end

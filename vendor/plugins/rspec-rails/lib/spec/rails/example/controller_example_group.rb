@@ -66,11 +66,16 @@ module Spec
             klass.subject { controller }
             super
           end
-          
+
           def set_description(*args) # :nodoc:
             super
             if described_class && described_class.ancestors.include?(ActionController::Base)
-              tests described_class
+              controller_klass = if superclass.controller_class.ancestors.include?(ActionController::Base)
+                superclass.controller_class
+              else
+                described_class
+              end
+              tests controller_klass
             end
           end
 
@@ -111,17 +116,16 @@ end
 MESSAGE
           end
           @controller.extend ControllerInstanceMethods
-          @controller.integrate_views! if @integrate_views
+          @controller.integrate_views! if integrate_views?
           @controller.session = session
         end
 
         attr_reader :response, :request, :controller
-
-        def initialize(defined_description, options={}, &implementation) #:nodoc:
-          super
-          @integrate_views = self.class.integrate_views?
-        end
         
+        def integrate_views?
+          @integrate_views || self.class.integrate_views?
+        end
+
         # Bypasses any error rescues defined with rescue_from. Useful
         # in cases in which you want to specify errors coming out of
         # actions that might be caught by a rescue_from clause that is
@@ -162,6 +166,7 @@ MESSAGE
           end
           
           def render(*args)
+            return super if Hash === args.last && args.last[:inline]
             @_rendered ? record_render(args[0]) : super
           end
         
@@ -211,7 +216,7 @@ MESSAGE
           def response(&block)
             # NOTE - we're setting @update for the assert_select_spec - kinda weird, huh?
             @update = block
-            @_response || @response
+            super
           end
 
           def integrate_views!
@@ -219,7 +224,7 @@ MESSAGE
           end
 
         private
-
+        
           def integrate_views?
             @integrate_views
           end

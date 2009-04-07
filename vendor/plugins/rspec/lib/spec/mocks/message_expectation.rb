@@ -25,6 +25,8 @@ module Spec
         @at_least = nil
         @at_most = nil
         @args_to_yield = []
+        @failed_fast = nil
+        @args_to_yield_were_cloned = false
       end
       
       def build_child(expected_from, method_block, expected_received_count, opts={})
@@ -226,7 +228,7 @@ module Spec
         if similar_messages.empty?
           @error_generator.raise_expectation_error(@sym, @expected_received_count, @actual_received_count, *@args_expectation.args)
         else
-          @error_generator.raise_unexpected_message_args_error(self, *@similar_messages.first)
+          @error_generator.raise_unexpected_message_args_error(self, *@similar_messages)
         end
       end
 

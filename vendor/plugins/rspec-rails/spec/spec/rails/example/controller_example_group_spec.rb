@@ -104,7 +104,12 @@ require File.join(File.dirname(__FILE__), "/shared_routing_example_group_example
         get 'action_which_gets_session', :expected => "session value"
       end.should_not raise_error
     end
-
+    
+    it "allows inline rendering" do
+      get 'action_that_renders_inline'
+      response.body.should == "inline code"
+    end
+    
     describe "handling should_receive(:render)" do
       it "should warn" do
         controller.should_receive(:render).with(:template => "controller_spec/action_with_template")
@@ -142,7 +147,7 @@ require File.join(File.dirname(__FILE__), "/shared_routing_example_group_example
   
       it "should support a Symbol key" do
         get 'action_which_sets_cookie', :value => "cookie value"
-        if Rails::VERSION::STRING >= "2.3"
+        if ::Rails::VERSION::STRING >= "2.3"
           cookies[:cookie_key].should == "cookie+value"
         else
           cookies[:cookie_key].should == ["cookie value"]
@@ -151,7 +156,7 @@ require File.join(File.dirname(__FILE__), "/shared_routing_example_group_example
 
       it "should support a String key" do
         get 'action_which_sets_cookie', :value => "cookie value"
-        if Rails::VERSION::STRING >= "2.3"
+        if ::Rails::VERSION::STRING >= "2.3"
           cookies['cookie_key'].should == "cookie+value"
         else
           cookies['cookie_key'].should == ["cookie value"]
@@ -260,6 +265,25 @@ end
 module Spec
   module Rails
     module Example
+      describe ApplicationController, :type => :controller do
+        describe "controller_name" do
+          controller_name :controller_spec
+          it "overrides the controller class submitted to the outermost group" do
+            subject.should be_an_instance_of(ControllerSpecController)
+          end
+          describe "in a nested group" do
+            it "overrides the controller class submitted to the outermost group" do
+              subject.should be_an_instance_of(ControllerSpecController)
+            end
+            describe "(doubly nested)" do
+              it "overrides the controller class submitted to the outermost group" do
+                subject.should be_an_instance_of(ControllerSpecController)
+              end
+            end
+          end
+        end
+      end
+      
       describe ControllerExampleGroup do
         it "should clear its name from the description" do
           group = describe("foo", :type => :controller) do

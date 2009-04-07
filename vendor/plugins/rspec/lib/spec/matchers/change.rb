@@ -6,6 +6,7 @@ module Spec
       def initialize(receiver=nil, message=nil, &block)
         @message = message || "result"
         @value_proc = block || lambda {receiver.__send__(message)}
+        @to = @from = @minimum = @maximum = @amount = nil
       end
       
       def matches?(event_proc)
@@ -15,7 +16,7 @@ module Spec
         event_proc.call
         @after = evaluate_value_proc
         
-        return false if @from unless @from == @before
+        return (@to = false) if @from unless @from == @before
         return false if @to unless @to == @after
         return (@before + @amount == @after) if @amount
         return ((@after - @before) >= @minimum) if @minimum
@@ -34,7 +35,7 @@ MESSAGE
         @value_proc.call
       end
       
-      def failure_message
+      def failure_message_for_should
         if @to
           "#{@message} should have been changed to #{@to.inspect}, but is now #{@after.inspect}"
         elsif @from
@@ -54,7 +55,7 @@ MESSAGE
         @after - @before
       end
       
-      def negative_failure_message
+      def failure_message_for_should_not
         "#{@message} should not have changed, but did change from #{@before.inspect} to #{@after.inspect}"
       end
       

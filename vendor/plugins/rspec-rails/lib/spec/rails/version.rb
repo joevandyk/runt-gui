@@ -1,13 +1,12 @@
-module Spec
-  module Rails
-    module VERSION #:nodoc:
+module Spec # :nodoc:
+  module Rails # :nodoc:
+    module VERSION # :nodoc:
       unless defined? MAJOR
         MAJOR  = 1
-        MINOR  = 1
-        TINY   = 99
-        MINESCULE = 9
+        MINOR  = 2
+        TINY   = 3
 
-        STRING = [MAJOR, MINOR, TINY, MINESCULE].compact.join('.')
+        STRING = [MAJOR, MINOR, TINY].compact.join('.')
 
         SUMMARY = "rspec-rails #{STRING}"
       end
