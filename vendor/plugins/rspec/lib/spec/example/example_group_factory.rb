@@ -22,22 +22,13 @@ module Spec
           ::Spec::Example::add_spec_path_to(args)
           ::Spec::Example::SharedExampleGroup.register(*args, &example_group_block)
         end
-
-        # Creates a new subclass of self, with a name "under" our own name.
-        # Example:
-        #
-        #   x = Foo::Bar.subclass('Zap'){}
-        #   x.name # => Foo::Bar::Zap_1
-        #   x.superclass.name # => Foo::Bar
-        def create_example_group_subclass(base, *args, &example_group_block) # :nodoc:
-          @class_count ||= 0
-          @class_count += 1
-          # FIXME - Subclass_1 should be Zap_1 (based on args)
-          klass = base.const_set("Subclass_#{@class_count}", Class.new(base))
-          klass.set_description(*args)
-          example_group_block = include_constants_in(args.last[:scope], &example_group_block)
-          klass.module_eval(&example_group_block)
-          klass
+        
+        def create_example_group(*args, &block)
+          raise ArgumentError if args.empty?
+          raise ArgumentError unless block
+          Spec::Example::add_spec_path_to(args)
+          superclass = determine_superclass(args.last)
+          superclass.describe(*args, &block)
         end
 
         # Registers an example group class +klass+ with the symbol +type+. For
@@ -69,22 +60,6 @@ module Spec
 
         def [](key)
           @example_group_types[key]
-        end
-
-        def create_example_group(*args, &block)
-          raise ArgumentError if args.empty?
-          raise ArgumentError unless block
-          Spec::Example::add_spec_path_to(args)
-          superclass = determine_superclass(args.last)
-          superclass.describe(*args, &block)
-        end
-
-        def include_constants_in(context, &block)
-          if (Spec::Ruby.version.to_f >= 1.9) & (Module === context) & !(Class === context)
-            return lambda {include context;instance_eval(&block)}
-          else
-            block
-          end
         end
 
         def assign_scope(scope, args)

@@ -4,21 +4,12 @@ module Spec
   module Rails
     module Example
       class FunctionalExampleGroup < ActionController::TestCase
-        def setup_controller_request_and_response
+        def setup
           # no-op to override AC::TC's setup w/ conflicts with the before(:each) below
         end
 
         attr_reader :request, :response
-        before(:each) do
-          @controller_class = @controller_class_name.split('::').inject(Object) { |k,n| k.const_get n }
-          raise "Can't determine controller class for #{@controller_class_name}" if @controller_class.nil?
 
-          @controller = @controller_class.new
-          @request = ActionController::TestRequest.new
-          @response = ActionController::TestResponse.new
-          @response.session = @request.session
-        end
-        
         def params
           request.parameters
         end
@@ -28,7 +19,7 @@ module Spec
         end
 
         def session
-          response.session
+          request.session
         end
         
         # Overrides the <tt>cookies()</tt> method in

@@ -11,7 +11,11 @@ module Spec
           @request = request
         end
 
-        def matches?(response)
+        def matches?(response_or_controller)
+          response  = response_or_controller.respond_to?(:response) ?
+                      response_or_controller.response :
+                      response_or_controller
+
           @redirected = response.redirect?
           @actual = response.redirect_url
           return false unless @redirected
@@ -55,7 +59,7 @@ module Spec
 
         def query_hash(url)
           query = url.split("?", 2)[1] || ""
-          QueryParameterParser.parse_query_parameters(query, @request)
+          Rack::Utils.parse_query(query)
         end
 
         def with(options)
@@ -94,16 +98,6 @@ module Spec
 
         def description
           "redirect to #{@expected.inspect}"
-        end
-
-        class QueryParameterParser
-          def self.parse_query_parameters(query, request)
-            if request.class.respond_to?(:parse_query_parameters)
-              request.class.parse_query_parameters(query)
-            else
-              ActionController::UrlEncodedPairParser.parse_query_parameters(query)
-            end
-          end
         end
       end
 

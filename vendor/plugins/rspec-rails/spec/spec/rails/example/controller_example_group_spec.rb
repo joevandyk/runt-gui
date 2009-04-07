@@ -1,10 +1,28 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require 'controller_spec_controller'
+require File.join(File.dirname(__FILE__), "/shared_routing_example_group_examples.rb")
 
 ['integration', 'isolation'].each do |mode|
   describe "A controller example running in #{mode} mode", :type => :controller do
     controller_name :controller_spec
     integrate_views if mode == 'integration'
+
+    accesses_configured_helper_methods
+    include RoutingExampleGroupSpec
+
+    describe "with an implicit subject" do
+      it "uses the controller" do
+        subject.should == controller
+      end
+    end
+
+    describe "with a specified subject" do
+      subject { 'specified' }
+      
+      it "uses the specified subject" do
+        subject.should == 'specified'
+      end
+    end
     
     it "should provide controller.session as session" do
       get 'action_with_template'
@@ -142,98 +160,6 @@ require 'controller_spec_controller'
     
     end
     
-    describe "with an error that is not rescued in the controller" do
-      context "without rails' error handling" do
-        it "raises the error" do
-          lambda do
-            get 'other_error_action'
-          end.should raise_error(ControllerSpecController::UnRescuedError)
-        end
-      end
-      context "with rails' error handling" do
-        it "does not raise the error" do
-          controller.use_rails_error_handling!
-          lambda do
-            get 'other_error_action'
-          end.should_not raise_error
-        end
-      end
-    end
-    
-    describe "with an error that is rescued in the controller" do
-      context "without rails' error handling" do
-        it "does not raise error" do
-          lambda do
-            get 'rescued_error_action'
-          end.should_not raise_error
-        end
-
-        it "executes rescue_from" do
-          get 'rescued_error_action'
-          response.body.should == 'Rescued!'
-        end
-      end
-
-      context "with rails' error handling" do
-        before(:each) do
-          controller.use_rails_error_handling!
-        end
-        it "does not raise error" do
-          lambda do
-            get 'rescued_error_action'
-          end.should_not raise_error
-        end
-
-        it "executes rescue_from" do
-          get 'rescued_error_action'
-          response.body.should == 'Rescued!'
-        end
-      end
-    end
-
-    class CustomRouteSpecController < ActionController::Base; end
-    class RspecOnRailsSpecsController < ActionController::Base; end
-
-    it "should support custom routes" do
-      route_for(:controller => "custom_route_spec", :action => "custom_route").
-        should == "/custom_route"
-    end
-
-    it "should support existing routes" do
-      route_for(:controller => "controller_spec", :action => "some_action").
-        should == "/controller_spec/some_action"
-    end
-
-    it "should support existing routes with additional parameters" do
-      route_for(:controller => "controller_spec", :action => "some_action", :param => '1').
-        should == "/controller_spec/some_action?param=1"
-    end
-    
-    it "recognizes routes with methods besides :get" do
-      route_for(:controller => "rspec_on_rails_specs", :action => "update", :id => "37").
-        should == {:path => "/rspec_on_rails_specs/37", :method => :put}
-    end
-
-    it "should generate params for custom routes" do
-      params_from(:get, '/custom_route').
-        should == {:controller => "custom_route_spec", :action => "custom_route"}
-    end
-
-    it "should generate params for existing routes" do
-      params_from(:get, '/controller_spec/some_action').
-        should == {:controller => "controller_spec", :action => "some_action"}
-    end
-
-    it "should generate params for an existing route with a query parameter" do
-      params_from(:get, '/controller_spec/some_action?param=1').
-        should == {:controller => "controller_spec", :action => "some_action", :param => '1'}
-    end
-
-    it "should generate params for an existing route with multiple query parameters" do
-      params_from(:get, '/controller_spec/some_action?param1=1&param2=2').
-        should == {:controller => "controller_spec", :action => "some_action", :param1 => '1', :param2 => '2' }
-    end
-
     it "should expose instance vars through the assigns hash" do
       get 'action_setting_the_assigns_hash'
       assigns[:indirect_assigns_key].should == :indirect_assigns_key_value
@@ -255,6 +181,13 @@ require 'controller_spec_controller'
       lambda {
         get 'action_with_skipped_before_filter'
       }.should_not raise_error
+    end
+    
+    describe "extending #render on a controller" do
+      it "supports two arguments (as with rails 2.2)" do
+        get 'action_with_two_arg_render'
+        response.body.should =~ /new Effect\.Highlight/
+      end
     end
   end
 
@@ -308,9 +241,8 @@ end
   end
 end
 
-
 describe ControllerSpecController, :type => :controller do
-  it "should not require naming the controller if describe is passed a type" do
+  it "should use the controller passed to #describe" do
   end  
 end
 

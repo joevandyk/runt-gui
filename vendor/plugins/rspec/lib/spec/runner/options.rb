@@ -6,6 +6,8 @@ module Spec
       }
 
       EXAMPLE_FORMATTERS = { # Load these lazily for better speed
+                'silent' => ['spec/runner/formatter/base_formatter',                   'Formatter::BaseFormatter'],
+                     'l' => ['spec/runner/formatter/base_formatter',                   'Formatter::BaseFormatter'],
                'specdoc' => ['spec/runner/formatter/specdoc_formatter',                'Formatter::SpecdocFormatter'],
                      's' => ['spec/runner/formatter/specdoc_formatter',                'Formatter::SpecdocFormatter'],
                 'nested' => ['spec/runner/formatter/nested_text_formatter',            'Formatter::NestedTextFormatter'],
@@ -24,6 +26,7 @@ module Spec
       }
 
       attr_accessor(
+        :autospec, # hack to tell 
         :filename_pattern,
         :backtrace_tweaker,
         :context_lines,
@@ -108,7 +111,7 @@ module Spec
           end
         ensure
           after_suite_parts.each do |part|
-            part.call(success)
+            part.arity < 1 ? part.call : part.call(success)
           end
         end
       end
@@ -139,7 +142,6 @@ module Spec
         if @colour && RUBY_PLATFORM =~ /mswin|mingw/ ;\
           begin ;\
             replace_output = @output_stream.equal?($stdout) ;\
-            require 'rubygems' ;\
             require 'Win32/Console/ANSI' ;\
             @output_stream = $stdout if replace_output ;\
           rescue LoadError ;\
@@ -200,9 +202,10 @@ module Spec
       end
 
       def load_heckle_runner(heckle)
-        suffix = [/mswin/, /java/].detect{|p| p =~ RUBY_PLATFORM} ? '_unsupported' : ''
+        @format_options ||= [['silent', @output_stream]]
+        suffix = ([/mswin/, /java/].detect{|p| p =~ RUBY_PLATFORM} || Spec::Ruby.version.to_f == 1.9) ? '_unsupported' : ''
         require "spec/runner/heckle_runner#{suffix}"
-        @heckle_runner = HeckleRunner.new(heckle)
+        @heckle_runner = ::Spec::Runner::HeckleRunner.new(heckle)
       end
 
       def number_of_examples
@@ -306,7 +309,7 @@ module Spec
 
       def default_differ
         require 'spec/expectations/differs/default'
-        self.differ_class = Spec::Expectations::Differs::Default
+        self.differ_class = ::Spec::Expectations::Differs::Default
       end
 
       def set_spec_from_line_number

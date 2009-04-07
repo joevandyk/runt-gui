@@ -1,6 +1,10 @@
 module Spec
   module Rails
     module Example
+      class HelperExampleGroupController < ApplicationController #:nodoc:
+        attr_accessor :request, :url
+      end
+
       # Helper Specs live in $RAILS_ROOT/spec/helpers/.
       #
       # Helper Specs use Spec::Rails::Example::HelperExampleGroup, which allows you to
@@ -12,7 +16,7 @@ module Spec
       #
       # == Example
       #
-      #   class ThingHelper
+      #   module ThingHelper
       #     def number_of_things
       #       Thing.count
       #     end
@@ -26,6 +30,7 @@ module Spec
       #     end
       #   end
       class HelperExampleGroup < FunctionalExampleGroup
+        tests HelperExampleGroupController
         attr_accessor :output_buffer
         
         class HelperObject < ActionView::Base
@@ -109,10 +114,6 @@ module Spec
           include mod if mod.parents.include?(ActionView::Helpers)
         end
 
-        before(:all) do
-          @controller_class_name = 'Spec::Rails::Example::HelperExampleGroupController'
-        end
-
         before(:each) do
           @controller.request = @request
           @controller.url = ActionController::UrlRewriter.new @request, {} # url_for
@@ -154,17 +155,12 @@ module Spec
 
         Spec::Example::ExampleGroupFactory.register(:helper, self)
 
-        protected
+      protected
+
         def _assigns_hash_proxy
-          @_assigns_hash_proxy ||= AssignsHashProxy.new self do
-            helper
-          end
+          @_assigns_hash_proxy ||= AssignsHashProxy.new(self) {helper}
         end
 
-      end
-
-      class HelperExampleGroupController < ApplicationController #:nodoc:
-        attr_accessor :request, :url
       end
     end
   end

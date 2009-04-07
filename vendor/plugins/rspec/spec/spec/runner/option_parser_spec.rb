@@ -149,6 +149,16 @@ describe "OptionParser" do
     options.formatters[0].class.should equal(Spec::Runner::Formatter::HtmlFormatter)
   end
   
+  it "should use base formatter when format is s" do
+    options = parse(["--format", "l"])
+    options.formatters[0].class.should equal(Spec::Runner::Formatter::BaseFormatter)
+  end
+  
+  it "should use base formatter when format is silent" do
+    options = parse(["--format", "silent"])
+    options.formatters[0].class.should equal(Spec::Runner::Formatter::BaseFormatter)
+  end
+  
   it "should use html formatter with explicit output when format is html:test.html" do
     FileUtils.rm 'test.html' if File.exist?('test.html')
     options = parse(["--format", "html:test.html"])
@@ -289,7 +299,13 @@ describe "OptionParser" do
     it "should barf when --heckle is specified (and platform is windows)" do
       lambda do
         options = parse(["--heckle", "Spec"])
-      end.should raise_error(StandardError, "Heckle not supported on Windows")
+      end.should raise_error(StandardError, /Heckle is not supported/)
+    end
+  elsif Spec::Ruby.version.to_f == 1.9
+    it "should barf when --heckle is specified (and platform is Ruby 1.9)" do
+      lambda do
+        options = parse(["--heckle", "Spec"])
+      end.should raise_error(StandardError, /Heckle is not supported/)
     end
   else
     it "should heckle when --heckle is specified (and platform is not windows)" do
@@ -310,9 +326,15 @@ describe "OptionParser" do
   end
 
   it "should run parse drb after parsing options" do
-    @parser.stub!(:parse_drb)
-    @parser.should_receive(:parse_drb).with(["--drb"]).and_return(true)
+    @parser.should_receive(:parse_drb).with(no_args).and_return(true)
     options = parse(["--options", File.dirname(__FILE__) + "/spec_drb.opts"])    
+  end
+
+  it "should send all the arguments others than --drb back to the parser after parsing options" do
+    Spec::Runner::DrbCommandLine.should_receive(:run).and_return do |options|
+      options.argv.should == ["example_file.rb", "--colour"]
+    end
+    options = parse(["example_file.rb", "--options", File.dirname(__FILE__) + "/spec_drb.opts"])    
   end
 
   it "should read spaced and multi-line options from file when --options is specified" do
@@ -392,5 +414,10 @@ describe "OptionParser" do
       and_return(runner)
     options = parse(["--runner", "Custom::ExampleGroupRunner:something"])
     options.run_examples
+  end
+  
+  it "sets options.autospec to true with --autospec" do
+    options = parse(["--autospec"])
+    options.autospec.should be(true)
   end
 end

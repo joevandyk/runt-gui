@@ -47,7 +47,7 @@ module Spec
           end
         end
 
-        run_options.reporter.example_finished(updated_desc = ExampleDescription.new(description, options), execution_error)
+        run_options.reporter.example_finished(ExampleDescription.new(description, options), execution_error)
         success = execution_error.nil? || ExamplePendingError === execution_error
       end
 
@@ -107,7 +107,15 @@ WARNING
         example_group_hierarchy.run_after_each(self)
       end
 
+      def initialize(description, options={}, &implementation)
+        @_options = options
+        @_defined_description = description
+        @_implementation = implementation || pending_implementation
+        @_backtrace = caller
+      end
+
     private
+    
       include Matchers
       include Pending
       
@@ -126,12 +134,16 @@ WARNING
       def described_class # :nodoc:
         self.class.described_class
       end
-      
-    private
+
       def example_group_hierarchy
         self.class.example_group_hierarchy
       end
-    
+      
+      def pending_implementation
+        error = Spec::Example::NotYetImplementedError.new(caller)
+        lambda { raise(error) }
+      end
+
     end
   end
 end

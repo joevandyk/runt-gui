@@ -8,9 +8,9 @@ module Spec
 
       include Spec::Example::BeforeAndAfterHooks
       include Spec::Example::Subject::ExampleGroupMethods
+      include Spec::Example::PredicateMatchers
 
-      attr_reader :description_options, :spec_path
-      alias :options :description_options
+      attr_reader :options, :spec_path
       
       def inherited(klass) # :nodoc:
         super
@@ -52,7 +52,7 @@ WARNING
           if options[:shared]
             ExampleGroupFactory.create_shared_example_group(*args, &example_group_block)
           else
-            ExampleGroupFactory.create_example_group_subclass(self, *args, &example_group_block)
+            subclass(*args, &example_group_block)
           end
         else
           set_description(*args)
@@ -67,46 +67,6 @@ WARNING
         end
       end
       
-      # :call-seq:
-      #   predicate_matchers[matcher_name] = method_on_object
-      #   predicate_matchers[matcher_name] = [method1_on_object, method2_on_object]
-      #
-      # Dynamically generates a custom matcher that will match
-      # a predicate on your class. RSpec provides a couple of these
-      # out of the box:
-      #
-      #   exist (for state expectations)
-      #     File.should exist("path/to/file")
-      #
-      #   an_instance_of (for mock argument matchers)
-      #     mock.should_receive(:message).with(an_instance_of(String))
-      #
-      # == Examples
-      #
-      #   class Fish
-      #     def can_swim?
-      #       true
-      #     end
-      #   end
-      #
-      #   describe Fish do
-      #     predicate_matchers[:swim] = :can_swim?
-      #     it "should swim" do
-      #       Fish.new.should swim
-      #     end
-      #   end
-      def predicate_matchers
-        @predicate_matchers ||= {}
-      end
-
-      def example_descriptions
-        @example_descriptions ||= []
-      end
-      
-      def example_implementations
-        @example_implementations ||= {}
-      end
-
       # Creates an instance of the current example group class and adds it to
       # a collection of examples of the current example group.
       def example(description=nil, options={}, backtrace=nil, &implementation)
@@ -133,7 +93,7 @@ WARNING
         return true if examples.empty?
         return dry_run(examples, run_options) if run_options.dry_run?
 
-        define_methods_from_predicate_matchers(run_options)
+        define_methods_from_predicate_matchers
 
         success, before_all_instance_variables = run_before_all(run_options)
         success, after_all_instance_variables  = execute_examples(success, before_all_instance_variables, examples, run_options)
@@ -141,9 +101,7 @@ WARNING
       end
 
       def set_description(*args)
-        args, options = Spec::Example.args_and_options(*args)
-        @description_args = args
-        @description_options = options
+        @description_args, @options = Spec::Example.args_and_options(*args)
         @backtrace = caller(1)
         @spec_path = File.expand_path(options[:spec_path]) if options[:spec_path]
         self
@@ -162,7 +120,7 @@ WARNING
       end
       
       def described_class
-        Class === described_type ? described_type : nil
+        @described_class ||= Class === described_type ? described_type : nil
       end
       
       def description_args
@@ -173,6 +131,14 @@ WARNING
         @description_parts ||= example_group_hierarchy.inject([]) do |parts, example_group_class|
           [parts << example_group_class.description_args].flatten
         end
+      end
+      
+      def example_descriptions # :nodoc:
+        @example_descriptions ||= []
+      end
+      
+      def example_implementations # :nodoc:
+        @example_implementations ||= {}
       end
             
       def examples(run_options=nil) #:nodoc:
@@ -199,7 +165,21 @@ WARNING
         example_group_hierarchy.nested_descriptions
       end
       
+      def include_constants_in(mod)
+        include mod if (Spec::Ruby.version.to_f >= 1.9) & (Module === mod) & !(Class === mod)
+      end
+      
     private
+
+      def subclass(*args, &example_group_block)
+        @class_count ||= 0
+        @class_count += 1
+        klass = const_set("Subclass_#{@class_count}", Class.new(self))
+        klass.set_description(*args)
+        klass.include_constants_in(args.last[:scope])
+        klass.module_eval(&example_group_block)
+        klass
+      end
 
       def dry_run(examples, run_options)
         examples.each do |example|
@@ -209,6 +189,7 @@ WARNING
       end
 
       def run_before_all(run_options)
+        return [true,{}] if example_group_hierarchy.before_all_parts.empty?
         before_all = new("before(:all)")
         begin
           example_group_hierarchy.run_before_all(before_all)
@@ -234,6 +215,7 @@ WARNING
       end
       
       def run_after_all(success, instance_variables, run_options)
+        return success if example_group_hierarchy.after_all_parts.empty?
         after_all = new("after(:all)")
         after_all.set_instance_variables_from_hash(instance_variables)
         example_group_hierarchy.run_after_all(after_all)
@@ -256,15 +238,7 @@ WARNING
         !run_options.examples.empty?
       end
 
-      def define_methods_from_predicate_matchers(run_options) # :nodoc:
-        predicate_matchers.each_pair do |matcher_method, method_on_object|
-          define_method matcher_method do |*args|
-            eval("be_#{method_on_object.to_s.gsub('?','')}(*args)")
-          end
-        end
-      end
-
-      def method_added(name)
+      def method_added(name) # :nodoc:
         example(name.to_s, {}, caller(0)[1]) {__send__ name.to_s} if example_method?(name.to_s)
       end
       
@@ -298,57 +272,6 @@ WARNING
         end
         text == "" ? nil : text
       end
-
-      class ExampleGroupHierarchy < Array
-        def initialize(example_group_class)
-          push example_group_class
-          if example_group_class.respond_to?(:superclass) && example_group_class.superclass.respond_to?(:example_group_hierarchy)
-            unshift example_group_class.superclass.example_group_hierarchy
-            flatten!
-          end
-        end
-        
-        def run_before_all(example)
-          example.eval_each_fail_fast(before_all_parts)
-        end
-        
-        def run_before_each(example)
-          example.eval_each_fail_fast(before_each_parts)
-        end
-        
-        def run_after_each(example)
-          example.eval_each_fail_slow(after_each_parts)
-        end
-        
-        def run_after_all(example)
-          example.eval_each_fail_slow(after_all_parts)
-        end
-        
-        def before_all_parts
-          @before_all_parts ||= collect {|klass| klass.before_all_parts}.flatten
-        end
-        
-        def before_each_parts
-          @before_each_parts ||= collect {|klass| klass.before_each_parts}.flatten
-        end
-        
-        def after_each_parts
-          @after_each_parts ||= reverse.collect {|klass| klass.after_each_parts}.flatten
-        end
-        
-        def after_all_parts
-          @after_all_parts ||= reverse.collect {|klass| klass.after_all_parts}.flatten
-        end
-        
-        def nested_descriptions
-          @nested_descriptions ||= collect {|eg| nested_description_from(eg) == "" ? nil : nested_description_from(eg) }.compact
-        end
-        
-        def nested_description_from(example_group)
-          example_group.description_args.join
-        end
-      end
-      
     end
 
   end

@@ -1,10 +1,8 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
-begin
-  require 'nokogiri' # Needed to compare generated with wanted HTML
-rescue LoadError
-  warn "nokogiri not loaded -- skipping TextMateFormatter specs"
-  return
-end
+
+begin # See rescue all the way at the bottom
+
+require 'nokogiri' # Needed to compare generated with wanted HTML
 require 'spec/runner/formatter/text_mate_formatter'
 
 module Spec
@@ -64,7 +62,7 @@ module Spec
            it "should produce HTML identical to the one we designed manually with --diff" do
              produces_html_identical_to_manually_designed_document("--diff") do |html|
                suffix = jruby? ? '-jruby' : ''
-               expected_file = File.dirname(__FILE__) + "/text_mate_formatted-#{::VERSION}#{suffix}.html"
+               expected_file = File.dirname(__FILE__) + "/text_mate_formatted-#{::RUBY_VERSION}#{suffix}.html"
                unless File.file?(expected_file)
                  raise "There is no HTML file with expected content for this platform: #{expected_file}"
                end
@@ -101,4 +99,8 @@ module Spec
       end
     end
   end
+end
+
+rescue LoadError
+  warn "nokogiri not loaded -- skipping TextMateFormatter specs"
 end

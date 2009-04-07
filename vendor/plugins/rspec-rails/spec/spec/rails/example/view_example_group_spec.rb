@@ -4,6 +4,8 @@ describe "A template with an implicit helper", :type => :view do
   before(:each) do
     render "view_spec/implicit_helper"
   end
+  
+  accesses_configured_helper_methods
 
   it "should include the helper" do
     response.should have_tag('div', :content => "This is text from a method in the ViewSpecHelper")
@@ -177,6 +179,18 @@ describe "A view", :type => :view do
     render "view_spec/accessor"
   end
 
+  it "should use the template as the implicit subject" do
+    subject.should == template
+  end
+
+  describe "with a specified subject" do
+    subject { 'specified' }
+
+    it "should use the specified subject" do
+      subject.should == 'specified'
+    end
+  end
+
   it "should have access to session data" do
     response.should have_tag("div#session", "session")
   end
@@ -244,6 +258,15 @@ describe "render 'view_spec/foo/show.rhtml'", :type => :view do
   it "should derive action name using the first part of the template name" do
     render 'view_spec/foo/show.rhtml'
     request.path_parameters[:action].should == 'show'
+  end
+end
+
+describe "view_spec/foo/show.rhtml", :type => :view do
+  context "rendered with no args" do
+    it "renders just fine" do
+      render
+      request.path_parameters[:action].should == 'show'
+    end
   end
 end
 

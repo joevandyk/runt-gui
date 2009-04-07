@@ -1,13 +1,23 @@
-== Maintenance
+=== Version 1.1.99.x (in git)
 
-* IMPORTANT:
+WARNINGS:
 
   * If you use the ruby command to run specs instead of the spec command, you'll
     need to require 'spec/autorun' or they won't run. This won't affect you if
     you use the spec command or the Spec::Rake::SpecTask that ships with RSpec.
 
-  * You have to require 'spec/test/unit' to invoke test/unit interop if you're
-    using RSpec's core (this is handled implicitly with spec-rails)
+  * require 'spec/test/unit' to invoke test/unit interop if you're using
+    RSpec's core (this is handled implicitly with spec-rails)
+
+  * setup/teardown is gone - use before/after instead
+
+    * you can still use setup/teardown if you're using Test::Unit::TestCase as
+      the base ExampleGroup class (which is implicit in rspec-rails)
+      
+  * All references to rubygems have been removed from within rspec's code.
+  
+    * See Ryan Tomayko's http://gist.github.com/54177 for rationale and
+      suggestions on alternative approaches to loading rubygems
 
 * deprecations
 
@@ -16,15 +26,22 @@
 
 * enhancements
 
+  * cleaner integration with with heckle-1.4.2
   * allow registering example groups with a path-like key (Pat Maddox)
   * start DRb service at "druby://localhost:0" (Hongli Lai) - See http://redmine.ruby-lang.org/issues/show/496 
   * consistent reporting of errors as failures
   * added spec/test/unit as more intuitive path to loading test/unit interop lib
   * added explicit autorun feature for running specs with ruby command
+  * added handling for does_not_match? for matchers that want to know the context in which they were called
+  * lots of ruby 1.9.1 compatibility fixes from Chad Humprhies
+  * improved feedback from be_kind_of/be_a_kind_of/be_instance_of/be_an_instance_of (Jakub Šťastný)
+  * added --silent (-l) formatter option, which is now the default when running --heckle (Bob Aman)
   
 * bug fixes
 
   * support delegating operator matchers to subject with should_not
+  * all arguments are included if --drb is specified in spec.opts (Neil Buckley). Closes #671.
+  * added --autospec option hack (used internally) to get --color to work when using --drb and autospec.
 
 === Version 1.1.12 / 2009-01-11
 

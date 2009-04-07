@@ -7,7 +7,7 @@ class ControllerSpecController < ActionController::Base
   
   skip_before_filter :raise_error
 
-  set_view_path File.join(File.dirname(__FILE__), "..", "views")
+  prepend_view_path File.join(File.dirname(__FILE__), "..", "views")
   
   def some_action
     render :template => "template/that/does/not/actually/exist"
@@ -87,6 +87,12 @@ class ControllerSpecController < ActionController::Base
     render :text => ""
   end
   
+  def action_with_two_arg_render
+    render :update, :status => 404 do |page|
+      page.visual_effect :highlight, 'user_list'
+    end
+  end
+  
   class RescuedError < Exception; end
   class UnRescuedError < Exception; end
   
@@ -98,7 +104,7 @@ class ControllerSpecController < ActionController::Base
     raise RescuedError
   end
 
-  def other_error_action
+  def un_rescued_error_action
     raise UnRescuedError
   end
 end
