@@ -43,7 +43,8 @@ CREATE TABLE events (
     repeat_monthly boolean,
     name character varying(255),
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    events_end_at timestamp without time zone
 );
 
 
@@ -266,3 +267,5 @@ INSERT INTO schema_migrations (version) VALUES ('20090329212437');
 INSERT INTO schema_migrations (version) VALUES ('20090329212540');
 
 INSERT INTO schema_migrations (version) VALUES ('20090407225853');
+
+INSERT INTO schema_migrations (version) VALUES ('20090407231734');

@@ -12,8 +12,8 @@ class EventOccurance < ActiveRecord::Base
         s = s & after(event.start_at)
 
         # If end date, apply it
-        if event.end_at
-          s = s & before(event.end_at)
+        if event.events_end_at
+          s = s & before(event.events_end_at)
         end
 
         next_month = month >> 1

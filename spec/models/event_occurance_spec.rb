@@ -24,12 +24,11 @@ describe "Recurring Events" do
     end
 
     it "the created occurances should be attached to the event, and have the same times for starting" do
-      EventOccurance.for_month(APRIL).each do |e|
-        e.start_at.wday.should == 0
-        e.start_at.hour.should == @event.start_at.hour
-        e.start_at.min.should  == @event.start_at.min
-        e.event.should         == @event
-      end
+      april_events = EventOccurance.for_month(APRIL)
+      april_events[0].start_at.should == DateTime.new(2009, 4,  5, 19, 30)
+      april_events[1].start_at.should == DateTime.new(2009, 4, 12, 19, 30)
+      april_events[2].start_at.should == DateTime.new(2009, 4, 19, 19, 30)
+      april_events[3].start_at.should == DateTime.new(2009, 4, 26, 19, 30)
     end
 
     it "shouldn't create new events on subsequent calls" do
@@ -56,7 +55,7 @@ describe "Recurring Events" do
 
   describe "weekly event starting in march ending midway through april" do
     before(:each) do
-      @event = Event.create! :start_at => MARCH_29, :repeat_weekly => true, :end_at => APRIL_19
+      @event = Event.create! :start_at => MARCH_29, :repeat_weekly => true, :end_at => MARCH_29 + 1.hour, :events_end_at => APRIL_19
       @april = EventOccurance.for_month(APRIL)
     end
 
@@ -65,11 +64,9 @@ describe "Recurring Events" do
     end
 
     it "should set the end times on the occurances" do
-      @april.each do |e|
-        e.end_at.wday.should == 0
-        e.end_at.hour.should == @event.end_at.hour
-        e.end_at.min.should  == @event.end_at.min
-      end
+      @april[0].end_at.should == DateTime.new(2009, 4,  5, 20, 30)
+      @april[1].end_at.should == DateTime.new(2009, 4, 12, 20, 30)
+      @april[2].end_at.should == DateTime.new(2009, 4, 19, 20, 30)
     end
 
   end
