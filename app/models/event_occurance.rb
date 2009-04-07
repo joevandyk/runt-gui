@@ -1,16 +1,26 @@
 class EventOccurance < ActiveRecord::Base
-  include Runt
-
   belongs_to :event
 
   def self.for_month month
-    ::Event.find(:all).each do |event|
+    Event.find(:all).each do |event|
       if event.repeat_weekly
-        s = Runt::EveryTE.new(event.start_at, 1, Runt::DPrecision::Precision.week)
-        s = s & DIWeek.new(event.start_at.wday)
+        s = sugar.define do
+          on Runt::DIWeek.new(event.start_at.wday)
+        end
+
+        # Apply start date
+        s = s & Runt::AfterTE.new(Runt::PDate.day(event.start_at.year, event.start_at.month, event.start_at.day), true)
+
+        # If end date, apply it
+        if event.end_at
+          s = s & Runt::BeforeTE.new(Runt::PDate.day(event.end_at.year, event.end_at.month, event.end_at.day), true)
+        end
+
+        # Get the range of days in the current month
         next_month = month >> 1
-        range = DateRange.new(PDate.day(month.year, month.month, month.day), 
-                              PDate.day(next_month.year, next_month.month, next_month.day))
+        range = Runt::DateRange.new(Runt::PDate.day(month.year, month.month, month.day), 
+                                    Runt::PDate.day(next_month.year, next_month.month, next_month.day))
+
         return s.dates(range).map do |day|
           EventOccurance.find_or_create_event_by_day(event, day)
         end
@@ -25,5 +35,11 @@ class EventOccurance < ActiveRecord::Base
     else
       EventOccurance.create! :event => event, :start_at => day.to_time + event.start_at.hour.hours + event.start_at.min.minutes
     end
+  end
+
+  private
+
+  def self.sugar 
+    ExpressionBuilder.new
   end
 end

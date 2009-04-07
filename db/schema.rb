@@ -21,6 +21,8 @@ ActiveRecord::Schema.define(:version => 20090329212540) do
 
   create_table "events", :force => true do |t|
     t.datetime "start_at"
+    t.datetime "end_at"
+    t.datetime "last_generated_event"
     t.boolean  "repeat_weekly"
     t.boolean  "repeat_daily"
     t.boolean  "repeat_monthly"
