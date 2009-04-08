@@ -65,14 +65,27 @@ describe "Recurring Events" do
       april.each { |o| lambda { o.reload }.should raise_error }
     end
 
-=begin
     it "making the end date earlier should remove the occurrences after the new end date" do
       april = EventOccurrence.for_month(APRIL)
-      @event.update_attribute :events_end_at, APRIL_19
+      @event.events_end_at = APRIL_19
+      @event.save!
+
       # The last event should have been removed
       lambda { april.last.reload }.should raise_error
     end
-=end
+
+    it "shouldn't delete occurrences for other events when changing the end date" do
+      other_event = Event.create! :start_at => MARCH_29, :end_at => MARCH_29 + 1.hour, :repeat_weekly => true
+      EventOccurrence.for_month(APRIL)
+      other_occurrences = other_event.reload.occurrences
+      other_occurrences.should_not be_blank
+
+      @event.events_end_at = APRIL_19
+      @event.save!
+     
+      # Ensure that no other event had their occurrences deleted
+      other_occurrences.each { |e| e.reload }
+    end
   end
 
   describe "weekly event starting in march ending midway through april" do

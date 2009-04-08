@@ -2,7 +2,7 @@ class EventOccurrence < ActiveRecord::Base
   belongs_to :event
 
   def self.for_month month
-    Event.find(:all).each do |event|
+    Event.all.map do |event|
       if event.repeat_weekly
         s = sugar.define do
           on Runt::DIWeek.new(event.start_at.wday)
@@ -19,18 +19,18 @@ class EventOccurrence < ActiveRecord::Base
         next_month = month >> 1
         days_in_month = range(month, next_month)
 
-        return s.dates(days_in_month).map do |day|
+        s.dates(days_in_month).map do |day|
           EventOccurrence.find_or_create_event_by_day(event, day)
         end
       end
-    end
+    end.flatten
   end
 
   private
   
-  # Given an event and a day, find the event occurence for that day
+  # Given an event and a day, find the event occurrence for that day
   def self.find_or_create_event_by_day event, day
-    if e = event.occurences.find(:first, :conditions => ["start_at >= ? and start_at < ?", day, day + 1])
+    if e = event.occurrences.find(:first, :conditions => ["start_at >= ? and start_at < ?", day, day + 1])
       return e
     else
       return event.create_occurrence_on(day)
@@ -58,5 +58,6 @@ class EventOccurrence < ActiveRecord::Base
   def self.range start_at, end_at
     Runt::DateRange.new(pday(start_at), pday(end_at))
   end
+
 
 end

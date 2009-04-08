@@ -1,5 +1,6 @@
 class Event < ActiveRecord::Base
-  has_many :occurences, :class_name => "EventOccurrence", :dependent => :destroy
+  has_many :occurrences, :class_name => "EventOccurrence", :dependent => :destroy
+  after_update :update_occurrences
 
   # Given a day, create an occurrence based on this event for that particular day.
   def create_occurrence_on day
@@ -12,5 +13,13 @@ class Event < ActiveRecord::Base
 
     o.save!
     o
+  end
+
+  private
+
+  def update_occurrences
+    if self.events_end_at
+      EventOccurrence.destroy_all ["start_at > ? and event_id = ?", self.events_end_at, self.id]
+    end
   end
 end
