@@ -11,7 +11,7 @@
 
 ActiveRecord::Schema.define(:version => 20090407231734) do
 
-  create_table "event_occurances", :force => true do |t|
+  create_table "event_occurrences", :force => true do |t|
     t.integer  "event_id"
     t.string   "name"
     t.datetime "start_at"

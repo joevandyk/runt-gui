@@ -1,6 +1,6 @@
 class CreateEventOccurances < ActiveRecord::Migration
   def self.up
-    create_table :event_occurances do |t|
+    create_table :event_occurrences do |t|
       t.integer :event_id
       t.string :name
       t.datetime :start_at
@@ -10,6 +10,6 @@ class CreateEventOccurances < ActiveRecord::Migration
   end
 
   def self.down
-    drop_table :event_occurances
+    drop_table :event_occurrences
   end
 end

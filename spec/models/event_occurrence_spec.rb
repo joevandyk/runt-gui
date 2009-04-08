@@ -18,13 +18,13 @@ describe "Recurring Events" do
     end
 
     it "should have four events in april" do
-      assert_difference "EventOccurance.count", 4 do 
-        EventOccurance.for_month(APRIL).size.should == 4
+      assert_difference "EventOccurrence.count", 4 do 
+        EventOccurrence.for_month(APRIL).size.should == 4
       end
     end
 
-    it "the created occurances should be attached to the event, and have the same times for starting and ending" do
-      april_events = EventOccurance.for_month(APRIL)
+    it "the created occurrences should be attached to the event, and have the same times for starting and ending" do
+      april_events = EventOccurrence.for_month(APRIL)
       april_events[0].start_at.should == DateTime.new(2009, 4,  5, 19, 30)
       april_events[0].end_at.  should == DateTime.new(2009, 4,  5, 20, 30)
 
@@ -39,32 +39,48 @@ describe "Recurring Events" do
     end
 
     it "shouldn't create new events on subsequent calls" do
-      april = EventOccurance.for_month(APRIL)
-      assert_difference "EventOccurance.count", 0 do 
-        april.should == EventOccurance.for_month(APRIL)
+      april = EventOccurrence.for_month(APRIL)
+      assert_difference "EventOccurrence.count", 0 do 
+        april.should == EventOccurrence.for_month(APRIL)
       end
     end
 
     it "should be able to find events in far future" do
-      assert_difference "EventOccurance.count", 4 do 
-        EventOccurance.for_month(APRIL + 1.year).size.should == 4
+      assert_difference "EventOccurrence.count", 4 do 
+        EventOccurrence.for_month(APRIL + 1.year).size.should == 4
       end
     end
 
     it "should be one event in march" do
-      EventOccurance.for_month(MARCH).size.should == 1
+      EventOccurrence.for_month(MARCH).size.should == 1
     end
 
     it "should be no events in feb" do
-      EventOccurance.for_month(FEB).should be_blank
+      EventOccurrence.for_month(FEB).should be_blank
     end
+
+    it "deleting the event should delete the occurrences" do
+      april = EventOccurrence.for_month(APRIL)
+      @event.destroy
+      april.each { |o| lambda { o.reload }.should raise_error }
+    end
+
+=begin
+    it "making the end date earlier should remove the occurrences after the new end date" do
+      april = EventOccurrence.for_month(APRIL)
+      @event.update_attribute :events_end_at, APRIL_19
+      # The last event should have been removed
+      lambda { april.last.reload }.should raise_error
+    end
+=end
   end
 
   describe "weekly event starting in march ending midway through april" do
     it "should have three events in april (not 4)" do
       @event = Event.create! :start_at => MARCH_29, :repeat_weekly => true, :end_at => MARCH_29 + 1.hour, :events_end_at => APRIL_19
-      @april = EventOccurance.for_month(APRIL)
+      @april = EventOccurrence.for_month(APRIL)
       @april.size.should == 3
     end
   end
+
 end

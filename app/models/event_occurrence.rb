@@ -1,4 +1,4 @@
-class EventOccurance < ActiveRecord::Base
+class EventOccurrence < ActiveRecord::Base
   belongs_to :event
 
   def self.for_month month
@@ -20,7 +20,7 @@ class EventOccurance < ActiveRecord::Base
         days_in_month = range(month, next_month)
 
         return s.dates(days_in_month).map do |day|
-          EventOccurance.find_or_create_event_by_day(event, day)
+          EventOccurrence.find_or_create_event_by_day(event, day)
         end
       end
     end
@@ -33,7 +33,7 @@ class EventOccurance < ActiveRecord::Base
     if e = event.occurences.find(:first, :conditions => ["start_at >= ? and start_at < ?", day, day + 1])
       return e
     else
-      return event.create_occurance_on(day)
+      return event.create_occurrence_on(day)
     end
   end
 

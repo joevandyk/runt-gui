@@ -15,10 +15,10 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: event_occurances; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: event_occurrences; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE TABLE event_occurances (
+CREATE TABLE event_occurrences (
     id integer NOT NULL,
     event_id integer,
     name character varying(255),
@@ -111,10 +111,10 @@ CREATE TABLE schema_migrations (
 
 
 --
--- Name: event_occurances_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: event_occurrences_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE event_occurances_id_seq
+CREATE SEQUENCE event_occurrences_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
@@ -123,10 +123,10 @@ CREATE SEQUENCE event_occurances_id_seq
 
 
 --
--- Name: event_occurances_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: event_occurrences_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE event_occurances_id_seq OWNED BY event_occurances.id;
+ALTER SEQUENCE event_occurrences_id_seq OWNED BY event_occurrences.id;
 
 
 --
@@ -172,6 +172,7 @@ ALTER SEQUENCE schedule_details_id_seq OWNED BY schedule_details.id;
 --
 
 CREATE SEQUENCE schedules_id_seq
+    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -189,7 +190,7 @@ ALTER SEQUENCE schedules_id_seq OWNED BY schedules.id;
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE event_occurances ALTER COLUMN id SET DEFAULT nextval('event_occurances_id_seq'::regclass);
+ALTER TABLE event_occurrences ALTER COLUMN id SET DEFAULT nextval('event_occurrences_id_seq'::regclass);
 
 
 --
@@ -214,11 +215,11 @@ ALTER TABLE schedules ALTER COLUMN id SET DEFAULT nextval('schedules_id_seq'::re
 
 
 --
--- Name: event_occurances_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: event_occurrences_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
-ALTER TABLE ONLY event_occurances
-    ADD CONSTRAINT event_occurances_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY event_occurrences
+    ADD CONSTRAINT event_occurrences_pkey PRIMARY KEY (id);
 
 
 --
