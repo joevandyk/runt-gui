@@ -18,8 +18,12 @@ class Event < ActiveRecord::Base
   private
 
   def update_occurrences
+    # Remove any occurrences after the events_end_at
     if self.events_end_at
       EventOccurrence.destroy_all ["start_at > ? and event_id = ?", self.events_end_at, self.id]
     end
+
+    # Remove any occurrences before the start_at
+    EventOccurrence.destroy_all ["start_at < ? and event_id = ?", self.start_at, self.id]
   end
 end

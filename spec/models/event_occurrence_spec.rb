@@ -86,6 +86,12 @@ describe "Recurring Events" do
       # Ensure that no other event had their occurrences deleted
       other_occurrences.each { |e| e.reload }
     end
+
+    it "should delete previous occurences if start date moved forward" do
+      april = EventOccurrence.for_month(APRIL)
+      @event.update_attribute :start_at, APRIL_19
+      @event.occurrences.find(:all, :conditions => ["start_at < ?", APRIL_19]).should be_blank
+    end
   end
 
   describe "weekly event starting in march ending midway through april" do
