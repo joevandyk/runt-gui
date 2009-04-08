@@ -15,12 +15,11 @@ describe "Recurring Events" do
   describe "weekly event starting in march without end" do
     before(:each) do
       @event = Event.create! :start_at => MARCH_29, :end_at => MARCH_29 + 1.hour, :repeat_weekly => true
+      @april = EventOccurrence.for_month(APRIL)
     end
 
     it "should have four events in april" do
-      assert_difference "EventOccurrence.count", 4 do 
-        EventOccurrence.for_month(APRIL).size.should == 4
-      end
+      EventOccurrence.for_month(APRIL).size.should == 4
     end
 
     it "the created occurrences should be attached to the event, and have the same times for starting and ending" do
@@ -39,9 +38,8 @@ describe "Recurring Events" do
     end
 
     it "shouldn't create new events on subsequent calls" do
-      april = EventOccurrence.for_month(APRIL)
       assert_difference "EventOccurrence.count", 0 do 
-        april.should == EventOccurrence.for_month(APRIL)
+        @april.should == EventOccurrence.for_month(APRIL)
       end
     end
 
@@ -60,18 +58,16 @@ describe "Recurring Events" do
     end
 
     it "deleting the event should delete the occurrences" do
-      april = EventOccurrence.for_month(APRIL)
       @event.destroy
-      april.each { |o| lambda { o.reload }.should raise_error }
+      @april.each { |o| lambda { o.reload }.should raise_error }
     end
 
     it "making the end date earlier should remove the occurrences after the new end date" do
-      april = EventOccurrence.for_month(APRIL)
       @event.events_end_at = APRIL_19
       @event.save!
 
       # The last event should have been removed
-      lambda { april.last.reload }.should raise_error
+      lambda { @april.last.reload }.should raise_error
     end
 
     it "shouldn't delete occurrences for other events when changing the end date" do
@@ -88,17 +84,18 @@ describe "Recurring Events" do
     end
 
     it "should delete previous occurences if start date moved forward" do
-      april = EventOccurrence.for_month(APRIL)
+      @event.occurrences.find(:all, :conditions => ["start_at < ?", APRIL_19]).should_not be_blank
       @event.update_attribute :start_at, APRIL_19
+      # There shouldn't be any events after April 19th
       @event.occurrences.find(:all, :conditions => ["start_at < ?", APRIL_19]).should be_blank
     end
   end
 
   describe "weekly event starting in march ending midway through april" do
     it "should have three events in april (not 4)" do
-      @event = Event.create! :start_at => MARCH_29, :repeat_weekly => true, :end_at => MARCH_29 + 1.hour, :events_end_at => APRIL_19
-      @april = EventOccurrence.for_month(APRIL)
-      @april.size.should == 3
+      event = Event.create! :start_at => MARCH_29, :repeat_weekly => true, :end_at => MARCH_29 + 1.hour, :events_end_at => APRIL_19
+      april = EventOccurrence.for_month(APRIL)
+      april.size.should == 3
     end
   end
 
