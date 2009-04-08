@@ -7,9 +7,33 @@ describe "Recurring Events" do
   APRIL     = DateTime.new(2009, 4)
   MARCH_29  = DateTime.new(2009, 3, 29, 19, 30)
   APRIL_19  = DateTime.new(2009, 4, 19)
+  APRIL_13  = DateTime.new(2009, 4, 13)
+  SEPTEMBER = DateTime.new(2009, 9, 30)
+  OCTOBER   = DateTime.new(2009, 10)
 
   before(:each) do
     Event.destroy_all
+  end
+
+  describe "monthly event on the 3rd Monday until september" do
+    before(:each) do
+      @event = Event.create! :start_at => APRIL_13, :end_at => APRIL_13 + 1.hour, :repeat_monthly => true, :events_end_at => SEPTEMBER, :repeat_week => 3, :repeat_day => 1
+    end
+
+    it "should have one event per month on the 3rd Monday" do
+      month = APRIL
+      while month <= SEPTEMBER
+        occurrences = EventOccurrence.for_month(month)
+        occurrences.size.should == 1
+        month = month >> 1
+      end
+
+      @event.occurrences[0].start_at.should == DateTime.new(2009, 4, 20)
+      @event.occurrences[1].start_at.should == DateTime.new(2009, 5, 18)
+      @event.occurrences[2].start_at.should == DateTime.new(2009, 6, 15)
+
+      EventOccurrence.for_month(OCTOBER).should be_blank
+    end
   end
 
   describe "weekly event starting in march without end" do

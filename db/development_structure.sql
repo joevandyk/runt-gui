@@ -44,7 +44,9 @@ CREATE TABLE events (
     name character varying(255),
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    events_end_at timestamp without time zone
+    events_end_at timestamp without time zone,
+    repeat_week integer,
+    repeat_day integer
 );
 
 
@@ -270,3 +272,5 @@ INSERT INTO schema_migrations (version) VALUES ('20090329212540');
 INSERT INTO schema_migrations (version) VALUES ('20090407225853');
 
 INSERT INTO schema_migrations (version) VALUES ('20090407231734');
+
+INSERT INTO schema_migrations (version) VALUES ('20090408011843');

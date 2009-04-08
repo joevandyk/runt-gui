@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20090407231734) do
+ActiveRecord::Schema.define(:version => 20090408011843) do
 
   create_table "event_occurrences", :force => true do |t|
     t.integer  "event_id"
@@ -31,6 +31,8 @@ ActiveRecord::Schema.define(:version => 20090407231734) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.datetime "events_end_at"
+    t.integer  "repeat_week"
+    t.integer  "repeat_day"
   end
 
   create_table "schedule_details", :force => true do |t|

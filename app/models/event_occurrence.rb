@@ -3,10 +3,14 @@ class EventOccurrence < ActiveRecord::Base
 
   def self.for_month month
     Event.all.map do |event|
-      if event.repeat_weekly
-        s = sugar.define do
-          on Runt::DIWeek.new(event.start_at.wday)
-        end
+      if event.repeat_weekly? || event.repeat_monthly?
+
+        s = 
+          if event.repeat_weekly?
+            Runt::DIWeek.new(event.start_at.wday)                  
+          else
+            Runt::DIMonth.new(event.repeat_week, event.repeat_day) 
+          end
 
         # Apply start date
         s = s & after(event.start_at)
@@ -22,7 +26,12 @@ class EventOccurrence < ActiveRecord::Base
         s.dates(days_in_month).map do |day|
           EventOccurrence.find_or_create_event_by_day(event, day)
         end
+
+      else
+        # Not a weekly or monthly repeating event
+        raise "not done yet"
       end
+
     end.flatten
   end
 
@@ -45,6 +54,10 @@ class EventOccurrence < ActiveRecord::Base
 
   def self.pday date
     Runt::PDate.day date.year, date.month, date.day 
+  end
+
+  def self.pweek date
+    Runt::PDate.week date.year, date.month, date.day
   end
 
   def self.after date
