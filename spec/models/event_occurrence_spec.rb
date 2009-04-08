@@ -124,3 +124,13 @@ describe "Recurring Events" do
   end
 
 end
+
+describe "Non-recurring event" do
+  it "should have a single occurrence" do
+    event = Event.create! :start_at => MARCH_29, :end_at => MARCH_29 + 1.hour
+    occurrences = EventOccurrence.for_month(MARCH)
+    occurrences.size.should == 1
+    occurrences.first.start_at.should == event.start_at
+    occurrences.first.end_at.  should == event.end_at
+  end
+end

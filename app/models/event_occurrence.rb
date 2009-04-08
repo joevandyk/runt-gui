@@ -28,8 +28,8 @@ class EventOccurrence < ActiveRecord::Base
         end
 
       else
-        # Not a weekly or monthly repeating event
-        raise "not done yet"
+        # Not a weekly or monthly repeating event, just create a single occurrence of it.
+        find_or_create_event_by_day event, pday(event.start_at)
       end
 
     end.flatten
