@@ -2,6 +2,10 @@ class Event < ActiveRecord::Base
   has_many :occurrences, :class_name => "EventOccurrence", :dependent => :destroy
   after_update :update_occurrences
 
+  def repeats?
+    repeat_weekly? or repeat_monthly?
+  end
+
   # Given a day, create an occurrence based on this event for that particular day.
   def create_occurrence_on day
     o = EventOccurrence.new
