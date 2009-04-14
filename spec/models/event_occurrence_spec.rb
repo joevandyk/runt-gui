@@ -17,7 +17,7 @@ describe "Recurring Events" do
 
   describe "monthly event on the 3rd Monday until september" do
     before(:each) do
-      @event = Event.create! :start_at => APRIL_13, :end_at => APRIL_13 + 1.hour, :repeat_monthly => true, :events_end_at => SEPTEMBER, :repeat_week => 3, :repeat_day => 1
+      @event = Event.create! :start_at => APRIL_13, :end_at => APRIL_13 + 1.hour, :repeat_monthly => true, :events_end_at => SEPTEMBER
     end
 
     it "should have one event per month on the 3rd Monday" do

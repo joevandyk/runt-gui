@@ -1,5 +1,31 @@
+# TODO move out of here
+class Time
+  # Returns the number of week of the month that this is.  i.e. April 13th, 2009 is the 3rd week of April
+  def week_of_month
+    t = self.dup
+    d = t.mday
+    count = 1
+    while t.mday <= d do
+      t = t - 7.days
+      count += 1
+    end
+    count
+  end
+end
+
 class EventOccurrence < ActiveRecord::Base
   belongs_to :event
+
+=begin
+  delegate :dance_types, :to => :event
+  delegate :address_city_state, :to => :event
+  delegate :user, :to => :event
+  delegate :picture, :to => :event
+  delegate :get_picture, :to => :event
+  delegate :description, :to => :event
+  delegate :user_id, :to => :event
+  delegate :name, :to => :event
+=end
 
   def self.for_range start_at, end_at
     # TODO Later, instead of looping over all events (inefficient), 
@@ -9,9 +35,9 @@ class EventOccurrence < ActiveRecord::Base
       if event.repeats?
         occurrences_for_repeating_event(event, start_at, end_at)
       else 
-        occurrence_for_single_event(event)
+        occurrence_for_single_event(event, start_at, end_at)
       end
-    end.flatten
+    end.flatten.reject { |a| a.nil? }.sort { |a, b| a.start_at <=> b.start_at }
   end
 
   # Returns a flat array of all event occurrences that happen in the specified month.
@@ -21,15 +47,22 @@ class EventOccurrence < ActiveRecord::Base
 
   private
 
-  def self.occurrence_for_single_event event
-    find_or_create_event_by_day(event, pday(event.start_at))
+  def self.occurrence_for_single_event event, start_at, end_at
+    if event.start_at >= start_at and event.start_at < end_at
+      find_or_create_event_by_day(event, pday(event.start_at))
+    end
   end
 
   def self.occurrences_for_repeating_event event, start_at, end_at=nil
     # Setup repeating runt expression
     s = event.repeat_weekly? ? 
         weekly(event.start_at) : 
-        monthly(event.repeat_week, event.repeat_day)
+        monthly(event.start_at)
+    
+    # If ranged end date
+    if end_at
+      s = s & before(end_at)
+    end
 
     # Apply start date
     s = s & after(event.start_at)
@@ -85,8 +118,7 @@ class EventOccurrence < ActiveRecord::Base
     Runt::DIWeek.new(date.wday)                  
   end
 
-  def self.monthly week, wday
-    Runt::DIMonth.new(week, wday) 
+  def self.monthly date
+    Runt::DIMonth.new(date.week_of_month, date.wday) 
   end
-
 end
