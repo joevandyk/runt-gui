@@ -1,27 +1,31 @@
 class EventOccurrence < ActiveRecord::Base
   belongs_to :event
 
-  # Returns a flat array of all event occurrences that happen in the specified month.
-  def self.for_month month
+  def self.for_range start_at, end_at
     # TODO Later, instead of looping over all events (inefficient), 
     # keep track if we've already generated occurrences for the events for 
     # that particular month.
     Event.all.map do |event|
       if event.repeats?
-        occurrences_for_repeating_event(event, month)
+        occurrences_for_repeating_event(event, start_at, end_at)
       else 
-        occurrence_for_single_event(event, month)
+        occurrence_for_single_event(event)
       end
     end.flatten
   end
 
+  # Returns a flat array of all event occurrences that happen in the specified month.
+  def self.for_month month
+    for_range(month, month >> 1)
+  end
+
   private
 
-  def self.occurrence_for_single_event event, month
+  def self.occurrence_for_single_event event
     find_or_create_event_by_day(event, pday(event.start_at))
   end
 
-  def self.occurrences_for_repeating_event event, month
+  def self.occurrences_for_repeating_event event, start_at, end_at=nil
     # Setup repeating runt expression
     s = event.repeat_weekly? ? 
         weekly(event.start_at) : 
@@ -35,8 +39,8 @@ class EventOccurrence < ActiveRecord::Base
       s = s & before(event.events_end_at)
     end
 
-    # Get the days in the month
-    days_in_month = range(month, month >> 1)
+    # Get the days in the range
+    days_in_month = range(start_at, end_at)
 
     # Loop over the days in the month that the event falls on,
     # Find or create the occurrence for that day.

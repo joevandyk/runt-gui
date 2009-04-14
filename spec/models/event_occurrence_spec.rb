@@ -46,6 +46,14 @@ describe "Recurring Events" do
       EventOccurrence.for_month(APRIL).size.should == 4
     end
 
+    it "should have one event if ranged for one day" do
+      EventOccurrence.for_range(MARCH_29, MARCH_29 + 1.day).size.should == 1
+    end
+
+    it "should have 52 events if ranged for a year" do
+      EventOccurrence.for_range(MARCH_29, MARCH_29 + 52.weeks - 1.day).size.should == 52
+    end
+
     it "the created occurrences should be attached to the event, and have the same times for starting and ending" do
       april_events = EventOccurrence.for_month(APRIL)
       april_events[0].start_at.should == DateTime.new(2009, 4,  5, 19, 30)
